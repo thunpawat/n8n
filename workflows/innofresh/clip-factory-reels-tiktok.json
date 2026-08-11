@@ -1,0 +1,461 @@
+{
+  "name": "Innofresh - Clip Factory (Reels & TikTok)",
+  "nodes": [
+    {
+      "id": "sticky-overview",
+      "name": "ภาพรวมระบบ",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -560,
+        -320
+      ],
+      "parameters": {
+        "width": 460,
+        "height": 460,
+        "content": "## 🎬 Innofresh — Clip Factory (Reels & TikTok)\n\n**ระบบนี้ทำ 3 อย่าง:** คิดไอเดียคลิป, ถอดเสียงวิดีโอ, เตรียม cut sheet (จุดตัด/แคปชั่น/hashtag) ให้ทีมรีวิวก่อนนำไปตัดจริงใน CapCut\n\n**ตัดคลิปจริงยังทำใน CapCut ด้วยคน** เพราะ CapCut ไม่มี public API ให้เชื่อมต่ออัตโนมัติ — ระบบนี้เตรียมทุกอย่างให้พร้อมก่อนเข้า CapCut เท่านั้น\n\n### ตั้งค่าก่อนใช้งาน (ทำครั้งเดียว)\n1. แก้ข้อมูลแบรนด์ใน node **Innofresh Brand Brief**\n2. ตั้งค่า credential **OpenAI** ใน node ถอดเสียง + คิดไอเดีย (ต้องมี API key)\n3. ตั้งค่า credential **Google Drive** และ **Google Sheets**\n4. ใส่ Slack webhook URL ใน node แจ้งทีม (หรือลบ node นี้ถ้าไม่ใช้ Slack)\n\n### ใช้งานแต่ละครั้ง\n1. กด Execute แล้วกรอก **Video Input**: ชื่อวิดีโอ + Google Drive File ID\n2. รอระบบถอดเสียง + คิดไอเดีย + บันทึกลง Google Sheet\n3. ทีมเข้าไปรีวิวใน Sheet แล้วตัดคลิปจริงใน CapCut ตามคำแนะนำ"
+      }
+    },
+    {
+      "id": "trigger-manual",
+      "name": "เริ่มทดสอบ",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -80,
+        0
+      ],
+      "parameters": {}
+    },
+    {
+      "id": "set-brand-brief",
+      "name": "Innofresh Brand Brief",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        140,
+        0
+      ],
+      "parameters": {
+        "mode": "manual",
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1",
+              "name": "brandName",
+              "type": "string",
+              "value": "Innofresh"
+            },
+            {
+              "id": "2",
+              "name": "toneOfVoice",
+              "type": "string",
+              "value": "สดใส กระชับ เป็นกันเอง เน้นความสดใหม่และสุขภาพดี (แก้ไขให้ตรงกับแบรนด์จริง)"
+            },
+            {
+              "id": "3",
+              "name": "targetAudience",
+              "type": "string",
+              "value": "คนรุ่นใหม่ที่ใส่ใจสุขภาพและความสด (แก้ไขให้ตรงกับแบรนด์จริง)"
+            },
+            {
+              "id": "4",
+              "name": "contentPillars",
+              "type": "string",
+              "value": "ความสดของวัตถุดิบ, เบื้องหลังการผลิต, ไอเดียการใช้สินค้า, รีวิวจากลูกค้า (แก้ไขให้ตรงกับแบรนด์จริง)"
+            },
+            {
+              "id": "5",
+              "name": "forbiddenTopics",
+              "type": "string",
+              "value": "ห้ามพูดถึงคู่แข่งโดยตรง, ห้ามอ้างสรรพคุณทางการแพทย์เกินจริง (แก้ไขให้ตรงกับแบรนด์จริง)"
+            },
+            {
+              "id": "6",
+              "name": "defaultHashtags",
+              "type": "string",
+              "value": "#Innofresh (แก้ไขให้ตรงกับแบรนด์จริง)"
+            },
+            {
+              "id": "7",
+              "name": "numberOfClipIdeas",
+              "type": "number",
+              "value": 5
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "sticky-brand",
+      "name": "หมายเหตุ Brand Brief",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        140,
+        -220
+      ],
+      "parameters": {
+        "width": 300,
+        "height": 180,
+        "content": "### ✏️ แก้ตรงนี้ก่อนใช้จริง\nใส่ข้อมูลแบรนด์ Innofresh จริง (โทนเสียง, กลุ่มเป้าหมาย, พิลลาร์คอนเทนต์) — AI จะใช้ข้อมูลนี้คิดไอเดียคลิป"
+      }
+    },
+    {
+      "id": "set-video-input",
+      "name": "Video Input",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        360,
+        0
+      ],
+      "parameters": {
+        "mode": "manual",
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1",
+              "name": "videoTitle",
+              "type": "string",
+              "value": "ใส่ชื่อวิดีโอต้นฉบับที่นี่"
+            },
+            {
+              "id": "2",
+              "name": "googleDriveFileId",
+              "type": "string",
+              "value": "ใส่ File ID ของวิดีโอใน Google Drive ที่นี่"
+            },
+            {
+              "id": "3",
+              "name": "sourceNotes",
+              "type": "string",
+              "value": "บริบทเพิ่มเติมเกี่ยวกับวิดีโอนี้ (ถ้ามี)"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "gdrive-download",
+      "name": "ดาวน์โหลดวิดีโอจาก Drive",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        580,
+        0
+      ],
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $json.googleDriveFileId }}"
+        },
+        "options": {}
+      },
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "REPLACE_ME",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "id": "http-whisper",
+      "name": "ถอดเสียงด้วย Whisper",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        800,
+        0
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/audio/transcriptions",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "openAiApi",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "file",
+              "parameterType": "formBinaryData",
+              "inputDataFieldName": "data"
+            },
+            {
+              "name": "model",
+              "value": "whisper-1"
+            },
+            {
+              "name": "response_format",
+              "value": "verbose_json"
+            },
+            {
+              "name": "timestamp_granularities[]",
+              "value": "segment"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "credentials": {
+        "openAiApi": {
+          "id": "REPLACE_ME",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "id": "code-prepare-prompt",
+      "name": "เตรียม Prompt คิดไอเดีย",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1020,
+        0
+      ],
+      "parameters": {
+        "jsCode": "const brand = $('Innofresh Brand Brief').first().json;\nconst video = $('Video Input').first().json;\nconst transcript = $json;\n\nconst transcriptText = transcript.text || (transcript.segments || []).map((s) => `[${s.start}s-${s.end}s] ${s.text}`).join('\\n');\n\nconst systemPrompt = `คุณเป็นนักคิดคอนเทนต์วิดีโอสั้นให้แบรนด์ \"${brand.brandName}\"\nโทนเสียงแบรนด์: ${brand.toneOfVoice}\nกลุ่มเป้าหมาย: ${brand.targetAudience}\nคอนเทนต์พิลลาร์: ${brand.contentPillars}\nข้อห้าม: ${brand.forbiddenTopics}\nแฮชแท็กหลัก: ${brand.defaultHashtags}\n\nจากบทถอดเสียงวิดีโอที่ให้มา ให้คิดไอเดียคลิปสั้นสำหรับ Reels และ TikTok จำนวน ${brand.numberOfClipIdeas} ไอเดีย โดยแต่ละไอเดียต้องมีฟิลด์ต่อไปนี้:\n- platform: \"reels\" หรือ \"tiktok\"\n- hook: ประโยคเปิด 1-2 วินาทีแรกที่ดึงดูดคนดู\n- caption: แคปชั่นโพสต์\n- hashtags: แฮชแท็กที่แนะนำ (array of string)\n- suggestedStart: เวลาเริ่มตัด (วินาที ตัวเลข)\n- suggestedEnd: เวลาจบตัด (วินาที ตัวเลข)\n- reason: เหตุผลที่ช่วงนี้น่าสนใจ\n\nตอบกลับเป็น JSON เท่านั้น ในรูปแบบ {\"clips\": [ ... ]} ห้ามมีข้อความอื่นนอกเหนือจาก JSON`;\n\nreturn [{\n  json: {\n    systemPrompt,\n    transcriptText,\n    videoTitle: video.videoTitle,\n    googleDriveFileId: video.googleDriveFileId,\n    brandName: brand.brandName\n  }\n}];"
+      }
+    },
+    {
+      "id": "http-gpt-ideation",
+      "name": "คิดไอเดียคลิปด้วย GPT",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1240,
+        0
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "openAiApi",
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ {\n  \"model\": \"gpt-4o\",\n  \"response_format\": { \"type\": \"json_object\" },\n  \"messages\": [\n    { \"role\": \"system\", \"content\": $json.systemPrompt },\n    { \"role\": \"user\", \"content\": $json.transcriptText }\n  ]\n} }}",
+        "options": {}
+      },
+      "credentials": {
+        "openAiApi": {
+          "id": "REPLACE_ME",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "id": "code-split-clips",
+      "name": "แยกเป็นรายคลิป",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1460,
+        -100
+      ],
+      "parameters": {
+        "jsCode": "const source = $('เตรียม Prompt คิดไอเดีย').first().json;\nconst response = $json;\nconst content = response.choices[0].message.content;\n\nlet parsed;\ntry {\n  parsed = JSON.parse(content);\n} catch (error) {\n  throw new Error('AI ไม่ได้ตอบกลับเป็น JSON ที่ถูกต้อง: ' + content);\n}\n\nconst clips = parsed.clips || [];\n\nreturn clips.map((clip, index) => ({\n  json: {\n    clipNumber: index + 1,\n    videoTitle: source.videoTitle,\n    googleDriveFileId: source.googleDriveFileId,\n    brandName: source.brandName,\n    platform: clip.platform,\n    hook: clip.hook,\n    caption: clip.caption,\n    hashtags: Array.isArray(clip.hashtags) ? clip.hashtags.join(' ') : clip.hashtags,\n    suggestedStart: clip.suggestedStart,\n    suggestedEnd: clip.suggestedEnd,\n    reason: clip.reason,\n    status: 'Needs Review',\n    capcutInstructions: `เปิดไฟล์ \"${source.videoTitle}\" ใน CapCut > ตัดช่วง ${clip.suggestedStart}s-${clip.suggestedEnd}s > ใส่ข้อความ hook ใน 2 วินาทีแรก > ใส่แคปชั่นตามที่แนะนำ แล้วโพสต์ที่ ${clip.platform}`\n  }\n}));"
+      }
+    },
+    {
+      "id": "gsheets-append",
+      "name": "บันทึกลง Google Sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        1680,
+        -100
+      ],
+      "parameters": {
+        "resource": "sheet",
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "ใส่ Google Sheet ID ที่นี่"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "id",
+          "value": "Sheet1"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": []
+        },
+        "options": {}
+      },
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "REPLACE_ME",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "id": "code-summary-message",
+      "name": "สรุปข้อความแจ้งเตือน",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1460,
+        120
+      ],
+      "parameters": {
+        "jsCode": "const source = $('เตรียม Prompt คิดไอเดีย').first().json;\nconst response = $json;\nconst content = response.choices[0].message.content;\n\nlet parsed;\ntry {\n  parsed = JSON.parse(content);\n} catch (error) {\n  throw new Error('AI ไม่ได้ตอบกลับเป็น JSON ที่ถูกต้อง: ' + content);\n}\n\nconst count = (parsed.clips || []).length;\n\nreturn [{\n  json: {\n    message: `🎬 มีไอเดียคลิปใหม่ ${count} คลิป สำหรับวิดีโอ \"${source.videoTitle}\" รอรีวิวใน Google Sheet แล้วครับ`\n  }\n}];"
+      }
+    },
+    {
+      "id": "http-slack-notify",
+      "name": "แจ้งทีมใน Slack",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1680,
+        120
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://hooks.slack.com/services/ใส่_SLACK_WEBHOOK_URL_ที่นี่",
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ { \"text\": $json.message } }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "sticky-capcut",
+      "name": "หมายเหตุ ขั้นตอน CapCut",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1680,
+        -320
+      ],
+      "parameters": {
+        "width": 380,
+        "height": 200,
+        "content": "### ✂️ ขั้นตอนถัดไป (ทำเองใน CapCut)\n1. เปิด CapCut แล้วนำเข้าไฟล์วิดีโอต้นฉบับ\n2. ดู Google Sheet คอลัมน์ suggestedStart / suggestedEnd แล้วตัดตามนั้น\n3. ใส่ข้อความ hook ใน 2 วินาทีแรก\n4. Export แล้วโพสต์ตาม caption/hashtags ที่เตรียมไว้"
+      }
+    }
+  ],
+  "connections": {
+    "เริ่มทดสอบ": {
+      "main": [
+        [
+          {
+            "node": "Innofresh Brand Brief",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Innofresh Brand Brief": {
+      "main": [
+        [
+          {
+            "node": "Video Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Video Input": {
+      "main": [
+        [
+          {
+            "node": "ดาวน์โหลดวิดีโอจาก Drive",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ดาวน์โหลดวิดีโอจาก Drive": {
+      "main": [
+        [
+          {
+            "node": "ถอดเสียงด้วย Whisper",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ถอดเสียงด้วย Whisper": {
+      "main": [
+        [
+          {
+            "node": "เตรียม Prompt คิดไอเดีย",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "เตรียม Prompt คิดไอเดีย": {
+      "main": [
+        [
+          {
+            "node": "คิดไอเดียคลิปด้วย GPT",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "คิดไอเดียคลิปด้วย GPT": {
+      "main": [
+        [
+          {
+            "node": "แยกเป็นรายคลิป",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "สรุปข้อความแจ้งเตือน",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "แยกเป็นรายคลิป": {
+      "main": [
+        [
+          {
+            "node": "บันทึกลง Google Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "สรุปข้อความแจ้งเตือน": {
+      "main": [
+        [
+          {
+            "node": "แจ้งทีมใน Slack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {}
+}
